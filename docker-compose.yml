@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  comment-service:
+    build: .
+    container_name: comment-service
+    hostname: comment-service
+    environment:
+      - MONGO_URI
+      - KAFKA_BROKER
+      - JWT_SECRET
+    volumes:
+      - .:/usr/src/app:rw
+      - /usr/src/app/node_modules
+    networks:
+      - tasty-net
+networks:
+  tasty-net:
+    external: true
