@@ -4,7 +4,7 @@ import { CommentsService } from './comments.service'
 import { QueryFilterDto } from 'src/common/dto/query-filter.dto'
 import { renderPagingResponse } from 'src/common/util/generatePaging'
 import { EventsGateway } from 'src/events/events.gateway'
-import { ApiBody, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger'
+import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger'
 
 @Controller('comments')
 @ApiTags('Comment')
