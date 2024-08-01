@@ -5,6 +5,8 @@ services:
     build: .
     container_name: comment-service
     hostname: comment-service
+    ports:
+      - ${PORT}:${PORT}
     environment:
       - MONGO_URI
       - KAFKA_BROKER

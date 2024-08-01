@@ -1,13 +1,25 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Comment, CommentDocument } from './schemas/comment.schema'
 import { Model, Types } from 'mongoose'
 import { CreateCommentDto } from './dto/create-comment.dto'
 import { QueryFilterDto } from 'src/common/dto/query-filter.dto'
+import { ClientKafka } from '@nestjs/microservices'
+import { CommentEvent, CreatedCommentEvent } from 'src/events'
 
 @Injectable()
 export class CommentsService {
-  constructor(@InjectModel(Comment.name) private readonly commentModel: Model<CommentDocument>) {}
+  constructor(
+    @Inject('KAFKA_SERVICE') private readonly client: ClientKafka,
+    @InjectModel(Comment.name) private readonly commentModel: Model<CommentDocument>
+  ) {}
 
   async create(createCommentDto: CreateCommentDto, authorId: string) {
     const createdComment = new this.commentModel({
@@ -16,7 +28,16 @@ export class CommentsService {
       author: new Types.ObjectId(authorId)
     })
 
-    return await createdComment.save()
+    const result = await createdComment.save()
+
+    if (!result) {
+      throw new InternalServerErrorException()
+    }
+
+    const event = new CreatedCommentEvent(result.postId.toString())
+    this.client.emit<number>(CommentEvent.created, JSON.stringify(event))
+
+    return result
   }
 
   async findOne(commentId: string) {
